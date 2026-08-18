@@ -10,11 +10,7 @@ import {
   User as UserIcon,
   Menu,
   X,
-  PhoneCall,
-  PlusCircle,
-  Briefcase,
-  ShieldAlert,
-  Sparkles
+  PlusCircle
 } from 'lucide-react';
 import { SERVICE_ITEMS } from '../../data/serviceCategories';
 
@@ -33,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { persona, currentUser, setPersona } = useAuth();
   const { language, t } = useLanguage();
-  const { bookings, jobPosts } = useMarketplace();
+  const { bookings } = useMarketplace();
   const isBn = language === 'bn';
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,25 +48,25 @@ export const Header: React.FC<HeaderProps> = ({
   const pendingBookingsCount = bookings.filter(b => b.status === 'requested' || b.status === 'on_the_way').length;
 
   return (
-    <header className="no-print bg-white border-b border-slate-200 sticky top-7 z-40 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-3">
+    <header className="no-print bg-white border-b border-slate-200 sticky top-[28px] sm:top-7 z-40 shadow-xs max-w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-3">
           {/* 1. Brand Logo */}
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <button
               onClick={() => onNavigateTab('home')}
-              className="flex items-center gap-2.5 text-left group"
+              className="flex items-center gap-2 text-left group"
             >
               {/* Bangladesh-inspired circular logo */}
-              <div className="relative w-11 h-11 rounded-2xl bg-brand-600 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform overflow-hidden">
-                <div className="absolute w-5 h-5 rounded-full bg-redaccent-500 -top-1 -right-1 opacity-90" />
-                <span className="font-black text-xl tracking-tighter relative z-10">SM</span>
+              <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-brand-600 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform overflow-hidden shrink-0">
+                <div className="absolute w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-redaccent-500 -top-1 -right-1 opacity-90" />
+                <span className="font-black text-base sm:text-xl tracking-tighter relative z-10">SM</span>
               </div>
               <div>
-                <div className="font-black text-xl text-slate-900 tracking-tight leading-none group-hover:text-brand-600 transition-colors">
+                <div className="font-black text-base sm:text-xl text-slate-900 tracking-tight leading-none group-hover:text-brand-600 transition-colors">
                   {isBn ? 'সার্ভিস মেন' : 'Service Men'}
                 </div>
-                <div className="text-[11px] font-semibold text-brand-600 leading-tight mt-0.5">
+                <div className="text-[10px] sm:text-[11px] font-semibold text-brand-600 leading-tight mt-0.5 hidden xs:block">
                   {isBn ? 'বিশ্বস্ত সেবা প্ল্যাটফর্ম' : 'On-Demand Services BD'}
                 </div>
               </div>
@@ -133,35 +129,36 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* 3. Action Buttons & Persona Specific Nav */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* 24/7 Emergency Dispatch SOS Button */}
             <button
               onClick={onOpenEmergencyModal}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-redaccent-500 border border-red-200 text-xs font-black transition-all shadow-xs animate-pulse"
+              className="flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-red-50 hover:bg-red-100 text-redaccent-500 border border-red-200 text-xs font-black transition-all shadow-xs shrink-0"
               title="24/7 Emergency Plumber, Electrician or Mechanic Dispatch"
             >
-              <Zap className="w-4 h-4 text-redaccent-500 fill-redaccent-500" />
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-redaccent-500 fill-redaccent-500 shrink-0" />
               <span className="hidden sm:inline">{isBn ? 'জরুরি সেবা' : 'Emergency 24/7'}</span>
+              <span className="sm:hidden font-extrabold text-[10px]">SOS</span>
             </button>
 
             {/* Post a Job Button */}
             <button
               onClick={onOpenPostJobModal}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs"
+              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs shrink-0"
             >
-              <PlusCircle className="w-4 h-4 text-brand-400" />
+              <PlusCircle className="w-4 h-4 text-brand-400 shrink-0" />
               <span>{isBn ? 'জব পোস্ট' : 'Post a Job'}</span>
             </button>
 
             {/* Notifications Bell */}
             <button
               onClick={() => onNavigateTab(persona === 'provider' ? 'requests' : 'bookings')}
-              className="relative p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
+              className="relative p-2 sm:p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors shrink-0"
               title="Notifications & Bookings"
             >
               <Bell className="w-4 h-4" />
               {pendingBookingsCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-redaccent-500 text-white text-[10px] font-bold flex items-center justify-center animate-bounce">
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-redaccent-500 text-white text-[10px] font-bold flex items-center justify-center">
                   {pendingBookingsCount}
                 </span>
               )}
@@ -169,11 +166,11 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* User Profile / Login Pill */}
             {currentUser ? (
-              <div className="flex items-center gap-2 pl-1">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <img
                   src={currentUser.avatar}
                   alt={currentUser.name}
-                  className="w-9 h-9 rounded-xl object-cover border-2 border-brand-500 shadow-xs"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border-2 border-brand-500 shadow-xs shrink-0"
                 />
                 <div className="hidden xl:block text-left">
                   <div className="text-xs font-bold text-slate-800 leading-tight">
@@ -187,17 +184,17 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <button
                 onClick={() => setPersona('customer')}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition-all shadow-sm"
+                className="flex items-center gap-1 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-[11px] sm:text-xs font-bold transition-all shadow-sm shrink-0"
               >
-                <UserIcon className="w-3.5 h-3.5" />
-                <span>{isBn ? 'লগইন / সাইন আপ' : 'Login / Register'}</span>
+                <UserIcon className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden xs:inline">{isBn ? 'লগইন' : 'Login'}</span>
               </button>
             )}
 
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl border border-slate-200 text-slate-700 md:hidden"
+              className="p-2 rounded-xl border border-slate-200 text-slate-700 md:hidden shrink-0"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>

@@ -7,7 +7,7 @@ import { Users, Wrench, Shield, Globe, RotateCcw, Check, Database } from 'lucide
 export const PersonaBanner: React.FC = () => {
   const { persona, setPersona } = useAuth();
   const { language, toggleLanguage } = useLanguage();
-  const { resetToDefaults, isDatabaseConnected } = useMarketplace();
+  const { resetToDefaults } = useMarketplace();
 
   const personas: { id: ActivePersona; labelEn: string; labelBn: string; icon: any }[] = [
     { id: 'guest', labelEn: 'Public Marketplace', labelBn: 'মার্কেটপ্লেস হোম', icon: Globe },
@@ -55,10 +55,11 @@ export const PersonaBanner: React.FC = () => {
         {/* Right: Database Indicator & Language toggle & Reset */}
         <div className="flex items-center gap-1.5 shrink-0">
           {/* Database Status Indicator */}
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[10px] font-mono text-emerald-400 shrink-0">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-950/90 border border-emerald-800/80 text-[10px] font-mono text-emerald-300 shrink-0 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             <Database className="w-3 h-3 text-emerald-400 shrink-0" />
-            <span className="hidden sm:inline">DB: Firebase</span>
-            <span className="sm:hidden">Firebase</span>
+            <span className="hidden sm:inline font-bold">DB: Firebase Firestore</span>
+            <span className="sm:hidden font-bold">Firebase</span>
           </div>
 
           {/* Language Toggle */}

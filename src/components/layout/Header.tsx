@@ -203,32 +203,83 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-100 space-y-3">
+          <div className="md:hidden py-4 border-t border-slate-100 space-y-3 px-1">
+            {/* Mobile Search Bar */}
+            <div className="relative w-full">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => {
+                  setSearchQuery(e.target.value);
+                  setShowSearchDropdown(true);
+                }}
+                placeholder={t('searchPlaceholder')}
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+              />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+
+              {/* Mobile Auto-suggest dropdown */}
+              {showSearchDropdown && filteredServices.length > 0 && (
+                <div className="mt-2 bg-white rounded-2xl shadow-lg border border-slate-100 p-2 max-h-60 overflow-y-auto">
+                  {filteredServices.map(service => (
+                    <button
+                      key={service.id}
+                      onClick={() => {
+                        onNavigateTab('services');
+                        setShowSearchDropdown(false);
+                        setMobileMenuOpen(false);
+                        setSearchQuery('');
+                      }}
+                      className="w-full px-3 py-2 rounded-xl hover:bg-brand-50 flex items-center justify-between text-left"
+                    >
+                      <div className="text-xs font-bold text-slate-800">
+                        {isBn ? service.nameBn : service.name}
+                      </div>
+                      <span className="text-[11px] font-bold text-brand-600">
+                        ৳{service.basePrice}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <LocationSelector compact />
-            <div className="grid grid-cols-2 gap-2 pt-2 text-xs">
+
+            <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
               <button
                 onClick={() => { onNavigateTab('home'); setMobileMenuOpen(false); }}
-                className="p-2.5 bg-slate-50 rounded-xl font-bold text-left"
+                className={`p-2.5 rounded-xl font-bold text-left flex items-center gap-2 ${
+                  activeTab === 'home' ? 'bg-brand-600 text-white' : 'bg-slate-50 text-slate-700'
+                }`}
               >
-                {t('navHome')}
+                <span>🏠</span>
+                <span>{t('navHome')}</span>
               </button>
               <button
                 onClick={() => { onNavigateTab('services'); setMobileMenuOpen(false); }}
-                className="p-2.5 bg-slate-50 rounded-xl font-bold text-left"
+                className={`p-2.5 rounded-xl font-bold text-left flex items-center gap-2 ${
+                  activeTab === 'services' ? 'bg-brand-600 text-white' : 'bg-slate-50 text-slate-700'
+                }`}
               >
-                {t('navServices')}
+                <span>🛠️</span>
+                <span>{t('navServices')}</span>
               </button>
               <button
                 onClick={() => { onNavigateTab('bookings'); setMobileMenuOpen(false); }}
-                className="p-2.5 bg-slate-50 rounded-xl font-bold text-left"
+                className={`p-2.5 rounded-xl font-bold text-left flex items-center gap-2 ${
+                  activeTab === 'bookings' ? 'bg-brand-600 text-white' : 'bg-slate-50 text-slate-700'
+                }`}
               >
-                {t('navBookings')}
+                <span>📋</span>
+                <span>{t('navBookings')}</span>
               </button>
               <button
                 onClick={() => { onOpenPostJobModal(); setMobileMenuOpen(false); }}
-                className="p-2.5 bg-brand-50 text-brand-900 rounded-xl font-bold text-left"
+                className="p-2.5 bg-slate-900 text-white rounded-xl font-bold text-left flex items-center gap-2"
               >
-                {t('postAJob')}
+                <PlusCircle className="w-4 h-4 text-brand-400" />
+                <span>{t('postAJob')}</span>
               </button>
             </div>
           </div>

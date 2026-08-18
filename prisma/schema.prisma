@@ -1,0 +1,296 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String    @id @default(uuid())
+  name           String
+  nameBn         String?
+  phone          String    @unique
+  email          String    @unique
+  role           String    // customer, provider, admin
+  avatar         String
+  division       String
+  district       String
+  thana          String
+  area           String
+  addressDetails String?
+  loyaltyPoints  Int       @default(0)
+  referralCode   String    @unique
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  bookings       Booking[] @relation("CustomerBookings")
+  jobPosts       JobPost[]
+  reviews        Review[]
+  complaints     Complaint[]
+}
+
+model Provider {
+  id                    String   @id @default(uuid())
+  name                  String
+  nameBn                String
+  phone                 String   @unique
+  email                 String   @unique
+  avatar                String
+  nidNumber             String   @unique
+  nidStatus             String   @default("pending") // pending, under_review, verified, rejected
+  verifiedBadges        String   // JSON string array
+  experienceYears       Int
+  rating                Float    @default(5.0)
+  reviewCount           Int      @default(0)
+  completedJobs         Int      @default(0)
+  bio                   String
+  bioBn                 String
+  skills                String   // JSON string array
+  serviceArea           String   // JSON string array
+  division              String
+  district              String
+  serviceCategories     String   // JSON string array
+  hourlyRate            Float?
+  startingPrice         Float?
+  isAvailable           Boolean  @default(true)
+  emergencyReady        Boolean  @default(false)
+  joinedDate            String
+  ratingQuality         Float    @default(5.0)
+  ratingPunctuality     Float    @default(5.0)
+  ratingBehavior        Float    @default(5.0)
+  ratingPriceFairness   Float    @default(5.0)
+  pastWorkImages        String   // JSON string array
+  totalEarnings         Float    @default(0)
+  pendingEarnings       Float    @default(0)
+  withdrawnEarnings     Float    @default(0)
+  createdAt             DateTime @default(now())
+
+  bookings              Booking[]
+  jobBids               JobBid[]
+  reviews               Review[]
+  complaints            Complaint[]
+  withdrawals           WithdrawalRequest[]
+}
+
+model Category {
+  id             String    @id
+  name           String
+  nameBn         String
+  slug           String    @unique
+  icon           String
+  description    String
+  descriptionBn  String
+  commissionRate Float     @default(10.0)
+  color          String
+  badge          String?
+
+  services       Service[]
+}
+
+model Service {
+  id            String   @id
+  categoryId    String
+  name          String
+  nameBn        String
+  description   String
+  descriptionBn String
+  icon          String
+  basePrice     Float
+  priceType     String   // fixed, starting, hourly, quotation
+  isEmergency   Boolean  @default(false)
+  popular       Boolean  @default(false)
+  warrantyDays  Int      @default(7)
+  features      String   // JSON string array
+  featuresBn    String   // JSON string array
+
+  category      Category @relation(fields: [categoryId], references: [id])
+  bookings      Booking[]
+}
+
+model Location {
+  id          Int      @id @default(autoincrement())
+  division    String
+  divisionBn  String
+  district    String
+  districtBn  String
+  thana       String
+  thanaBn     String
+  areas       String   // JSON string array
+}
+
+model Booking {
+  id                 String   @id
+  customerId         String
+  customerName       String
+  customerPhone      String
+  customerAvatar     String?
+  providerId         String?
+  providerName       String?
+  providerPhone      String?
+  providerAvatar     String?
+  serviceId          String
+  serviceName        String
+  serviceNameBn      String?
+  categoryId         String
+  status             String   // requested, accepted, on_the_way, service_started, service_completed, payment_completed, cancelled
+  problemDescription String
+  photos             String?  // JSON string array
+  division           String
+  district           String
+  thana              String
+  area               String
+  addressDetails     String
+  scheduledDate      String
+  scheduledTime      String
+  isEmergency        Boolean  @default(false)
+  pricingType        String
+  baseAmount         Float
+  partsAmount        Float    @default(0)
+  discountAmount     Float    @default(0)
+  platformFee        Float    @default(50)
+  totalAmount        Float
+  paymentMethod      String   // cash, bkash, nagad, rocket, card
+  paymentStatus      String   @default("pending") // pending, paid, refunded
+  couponCode         String?
+  warrantyDays       Int      @default(7)
+  createdAt          String
+  completedAt        String?
+  cancellationReason String?
+  invoiceNumber      String   @unique
+
+  customer           User     @relation("CustomerBookings", fields: [customerId], references: [id])
+  provider           Provider? @relation(fields: [providerId], references: [id])
+  service            Service  @relation(fields: [serviceId], references: [id])
+  messages           ChatMessage[]
+  reviews            Review[]
+  complaints         Complaint[]
+}
+
+model JobPost {
+  id                 String   @id
+  customerId         String
+  customerName       String
+  customerPhone      String
+  serviceName        String
+  categoryId         String
+  problemDescription String
+  division           String
+  district           String
+  thana              String
+  area               String
+  addressDetails     String
+  preferredDate      String
+  preferredTime      String
+  budgetMin          Float
+  budgetMax          Float
+  attachments        String   // JSON string array
+  status             String   @default("open") // open, awarded, completed, cancelled
+  createdAt          String
+
+  customer           User     @relation(fields: [customerId], references: [id])
+  bids               JobBid[]
+}
+
+model JobBid {
+  id                    String   @id
+  jobPostId             String
+  providerId            String
+  providerName          String
+  providerAvatar        String
+  providerRating        Float
+  providerCompletedJobs Int
+  quotedAmount          Float
+  arrivalEstimate       String
+  proposalNote          String
+  status                String   @default("pending") // pending, accepted, rejected
+  createdAt             String
+
+  jobPost               JobPost  @relation(fields: [jobPostId], references: [id])
+  provider              Provider @relation(fields: [providerId], references: [id])
+}
+
+model Review {
+  id             String   @id
+  bookingId      String
+  customerId     String
+  customerName   String
+  customerAvatar String?
+  providerId     String
+  serviceName    String
+  rating         Float
+  quality        Float
+  punctuality    Float
+  behavior       Float
+  priceFairness  Float
+  comment        String
+  photos         String?  // JSON string array
+  createdAt      String
+
+  booking        Booking  @relation(fields: [bookingId], references: [id])
+  customer       User     @relation(fields: [customerId], references: [id])
+  provider       Provider @relation(fields: [providerId], references: [id])
+}
+
+model Complaint {
+  id              String   @id
+  bookingId       String
+  invoiceNumber   String?
+  customerId      String
+  customerName    String
+  customerPhone   String
+  providerId      String
+  providerName    String
+  reason          String
+  description     String
+  status          String   @default("submitted") // submitted, under_investigation, resolved, rejected
+  resolutionNote  String?
+  refundAmount    Float?
+  createdAt       String
+
+  booking         Booking  @relation(fields: [bookingId], references: [id])
+  customer        User     @relation(fields: [customerId], references: [id])
+  provider        Provider @relation(fields: [providerId], references: [id])
+}
+
+model ChatMessage {
+  id         String   @id
+  bookingId  String
+  senderId   String
+  senderName String
+  senderRole String   // customer, provider, system
+  text       String
+  imageUrl   String?
+  timestamp  String
+  createdAt  DateTime @default(now())
+
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+}
+
+model Coupon {
+  code             String   @id
+  discountType     String   // fixed, percentage
+  discountValue    Float
+  minBookingAmount Float
+  description      String
+  descriptionBn    String
+  expiryDate       String
+  usageCount       Int      @default(0)
+  maxUses          Int?
+  isActive         Boolean  @default(true)
+}
+
+model WithdrawalRequest {
+  id           String   @id
+  providerId   String
+  providerName String
+  amount       Float
+  method       String   // bkash, nagad, rocket
+  accountPhone String
+  status       String   @default("pending") // pending, approved, rejected
+  requestedAt  String
+  processedAt  String?
+
+  provider     Provider @relation(fields: [providerId], references: [id])
+}

@@ -750,3 +750,5 @@ app.post('/api/withdrawals', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Service Men Backend Database API Server running at http://localhost:${PORT}`);
 });
+
+export default app;

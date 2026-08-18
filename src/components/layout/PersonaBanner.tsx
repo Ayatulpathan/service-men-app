@@ -57,8 +57,8 @@ export const PersonaBanner: React.FC = () => {
           {/* Database Status Indicator */}
           <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[10px] font-mono text-emerald-400 shrink-0">
             <Database className="w-3 h-3 text-emerald-400 shrink-0" />
-            <span className="hidden sm:inline">DB: {isDatabaseConnected ? 'Prisma SQL' : 'Local'}</span>
-            <span className="sm:hidden">{isDatabaseConnected ? 'SQL' : 'Local'}</span>
+            <span className="hidden sm:inline">DB: Firebase</span>
+            <span className="sm:hidden">Firebase</span>
           </div>
 
           {/* Language Toggle */}

@@ -14,8 +14,9 @@ import {
 } from '../types';
 import { INITIAL_BOOKINGS, INITIAL_JOB_POSTS, INITIAL_REVIEWS, INITIAL_COMPLAINTS, INITIAL_COUPONS, INITIAL_CHAT_MESSAGES } from '../data/mockBookings';
 import { MOCK_PROVIDERS } from '../data/mockProviders';
-import { SERVICE_CATEGORIES, SERVICE_ITEMS } from '../data/serviceCategories';
-import { api } from '../services/api';
+import { SERVICE_ITEMS } from '../data/serviceCategories';
+import { firebaseDb, COLLECTIONS } from '../services/firebaseDb';
+import { seedFirestoreDatabase } from '../services/firebaseSeed';
 
 export interface SelectedLocation {
   division: string;
@@ -36,6 +37,7 @@ interface MarketplaceContextType {
   chatMessages: ChatMessage[];
   withdrawals: WithdrawalRequest[];
   isDatabaseConnected: boolean;
+  dbEngine: 'Firebase' | 'Prisma SQL' | 'Local';
   
   // Booking actions
   createBooking: (bookingData: Omit<Booking, 'id' | 'createdAt' | 'invoiceNumber'>) => Booking;
@@ -74,7 +76,8 @@ interface MarketplaceContextType {
 const MarketplaceContext = createContext<MarketplaceContextType | undefined>(undefined);
 
 export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isDatabaseConnected, setIsDatabaseConnected] = useState(false);
+  const [isDatabaseConnected, setIsDatabaseConnected] = useState(true);
+  const [dbEngine, setDbEngine] = useState<'Firebase' | 'Prisma SQL' | 'Local'>('Firebase');
 
   // Location
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation>(() => {
@@ -142,38 +145,56 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     ];
   });
 
-  // Initial Sync from Express Server REST API
+  // Firebase Firestore Real-Time Subscriptions
   useEffect(() => {
-    async function syncFromDatabase() {
-      try {
-        const health = await api.getHealth();
-        if (health.status === 'ok') {
-          setIsDatabaseConnected(true);
+    // Seed initial dataset if empty
+    seedFirestoreDatabase();
 
-          const dbProviders = await api.getProviders();
-          const dbBookings = await api.getBookings();
-          const dbJobPosts = await api.getJobPosts();
-          const dbReviews = await api.getReviews();
-          const dbComplaints = await api.getComplaints();
-          const dbCoupons = await api.getCoupons();
-          const dbWithdrawals = await api.getWithdrawals();
+    const unsubBookings = firebaseDb.subscribeToCollection<Booking>(COLLECTIONS.BOOKINGS, data => {
+      if (data && data.length > 0) setBookings(data);
+    });
 
-          if (dbProviders.length > 0) setProviders(dbProviders);
-          if (dbBookings.length > 0) setBookings(dbBookings);
-          if (dbJobPosts.length > 0) setJobPosts(dbJobPosts);
-          if (dbReviews.length > 0) setReviews(dbReviews);
-          if (dbComplaints.length > 0) setComplaints(dbComplaints);
-          if (dbCoupons.length > 0) setCoupons(dbCoupons);
-          if (dbWithdrawals.length > 0) setWithdrawals(dbWithdrawals);
-        }
-      } catch {
-        setIsDatabaseConnected(false);
-      }
-    }
-    syncFromDatabase();
+    const unsubProviders = firebaseDb.subscribeToCollection<Provider>(COLLECTIONS.PROVIDERS, data => {
+      if (data && data.length > 0) setProviders(data);
+    });
+
+    const unsubJobPosts = firebaseDb.subscribeToCollection<JobPost>(COLLECTIONS.JOB_POSTS, data => {
+      if (data && data.length > 0) setJobPosts(data);
+    });
+
+    const unsubReviews = firebaseDb.subscribeToCollection<Review>(COLLECTIONS.REVIEWS, data => {
+      if (data && data.length > 0) setReviews(data);
+    });
+
+    const unsubComplaints = firebaseDb.subscribeToCollection<Complaint>(COLLECTIONS.COMPLAINTS, data => {
+      if (data && data.length > 0) setComplaints(data);
+    });
+
+    const unsubCoupons = firebaseDb.subscribeToCollection<Coupon>(COLLECTIONS.COUPONS, data => {
+      if (data && data.length > 0) setCoupons(data);
+    });
+
+    const unsubChats = firebaseDb.subscribeToCollection<ChatMessage>(COLLECTIONS.CHAT_MESSAGES, data => {
+      if (data && data.length > 0) setChatMessages(data);
+    });
+
+    const unsubWithdrawals = firebaseDb.subscribeToCollection<WithdrawalRequest>(COLLECTIONS.WITHDRAWALS, data => {
+      if (data && data.length > 0) setWithdrawals(data);
+    });
+
+    return () => {
+      unsubBookings();
+      unsubProviders();
+      unsubJobPosts();
+      unsubReviews();
+      unsubComplaints();
+      unsubCoupons();
+      unsubChats();
+      unsubWithdrawals();
+    };
   }, []);
 
-  // Save changes to LocalStorage
+  // Save changes to LocalStorage fallback
   useEffect(() => {
     localStorage.setItem('sm_location', JSON.stringify(selectedLocation));
   }, [selectedLocation]);
@@ -229,10 +250,10 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     setBookings(prev => [newBooking, ...prev]);
 
-    // Async REST API Push
-    api.createBooking(bookingData).catch(() => {});
+    // Push to Firebase Cloud Firestore
+    firebaseDb.createBooking(newBooking);
 
-    // Add initial system message in chat
+    // Initial system chat message
     const initialMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       bookingId: newId,
@@ -243,12 +264,15 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     };
     setChatMessages(prev => [...prev, initialMsg]);
+    firebaseDb.sendMessage(initialMsg);
 
     return newBooking;
   };
 
   // Update Booking Status
   const updateBookingStatus = (bookingId: string, newStatus: BookingStatus, extra?: { partsAmount?: number; reason?: string }) => {
+    let updatedBooking: Booking | undefined;
+
     setBookings(prev =>
       prev.map(b => {
         if (b.id !== bookingId) return b;
@@ -270,7 +294,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
               currentPros.map(p => {
                 if (p.id === updated.providerId) {
                   const netEarned = Math.round(updated.totalAmount * 0.9);
-                  return {
+                  const updatedPro = {
                     ...p,
                     completedJobs: p.completedJobs + 1,
                     earnings: {
@@ -279,36 +303,32 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
                       pending: p.earnings.pending + netEarned
                     }
                   };
+                  firebaseDb.updateProvider(p.id, updatedPro);
+                  return updatedPro;
                 }
                 return p;
               })
             );
           }
         }
+        updatedBooking = updated;
         return updated;
       })
     );
 
-    // Async API update
-    api.updateBookingStatus(bookingId, newStatus, extra).catch(() => {});
+    if (updatedBooking) {
+      firebaseDb.updateBooking(bookingId, updatedBooking);
+    }
   };
 
   // Pay Booking
   const payBooking = (bookingId: string, paymentMethod: Booking['paymentMethod']) => {
-    setBookings(prev =>
-      prev.map(b => {
-        if (b.id === bookingId) {
-          return {
-            ...b,
-            paymentMethod,
-            paymentStatus: 'paid',
-            status: b.status === 'service_completed' ? 'payment_completed' : b.status
-          };
-        }
-        return b;
-      })
-    );
-    api.payBooking(bookingId, paymentMethod).catch(() => {});
+    const target = bookings.find(b => b.id === bookingId);
+    if (!target) return;
+
+    const newStatus = target.status === 'service_completed' ? 'payment_completed' : target.status;
+    updateBookingStatus(bookingId, newStatus);
+    firebaseDb.updateBooking(bookingId, { paymentMethod, paymentStatus: 'paid', status: newStatus });
   };
 
   // Cancel Booking
@@ -333,7 +353,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     setJobPosts(prev => [newPost, ...prev]);
-    api.createJobPost(jobData).catch(() => {});
+    firebaseDb.createJobPost(newPost);
     return newPost;
   };
 
@@ -350,16 +370,18 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setJobPosts(prev =>
       prev.map(job => {
         if (job.id === jobPostId) {
-          return {
+          const updatedJob = {
             ...job,
             bids: [newBid, ...job.bids]
           };
+          firebaseDb.createJobPost(updatedJob);
+          return updatedJob;
         }
         return job;
       })
     );
 
-    api.submitBid(jobPostId, bidData).catch(() => {});
+    firebaseDb.submitBid(jobPostId, newBid);
   };
 
   // Accept Bid & Turn into Booking
@@ -371,18 +393,14 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       throw new Error('Job or Bid not found');
     }
 
-    setJobPosts(prev =>
-      prev.map(j => {
-        if (j.id === jobPostId) {
-          return {
-            ...j,
-            status: 'awarded',
-            bids: j.bids.map(b => (b.id === bidId ? { ...b, status: 'accepted' } : { ...b, status: 'rejected' }))
-          };
-        }
-        return j;
-      })
-    );
+    const updatedJob: JobPost = {
+      ...targetJob,
+      status: 'awarded',
+      bids: targetJob.bids.map(b => (b.id === bidId ? { ...b, status: 'accepted' } : { ...b, status: 'rejected' }))
+    };
+
+    setJobPosts(prev => prev.map(j => (j.id === jobPostId ? updatedJob : j)));
+    firebaseDb.createJobPost(updatedJob);
 
     const matchedService = SERVICE_ITEMS.find(s => s.name.toLowerCase().includes(targetJob.serviceName.toLowerCase())) || SERVICE_ITEMS[0];
 
@@ -419,7 +437,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     setBookings(prev => [newBooking, ...prev]);
-    api.acceptBid(jobPostId, bidId).catch(() => {});
+    firebaseDb.createBooking(newBooking);
     return newBooking;
   };
 
@@ -432,23 +450,30 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (status === 'verified' && !updatedBadges.includes('NID Verified')) {
             updatedBadges.push('NID Verified');
           }
-          return {
+          const updatedPro = {
             ...p,
             nidStatus: status,
             verifiedBadges: updatedBadges
           };
+          firebaseDb.updateProvider(providerId, updatedPro);
+          return updatedPro;
         }
         return p;
       })
     );
-    api.verifyProvider(providerId, status, badges).catch(() => {});
   };
 
   const updateProviderAvailability = (providerId: string, isAvailable: boolean) => {
     setProviders(prev =>
-      prev.map(p => (p.id === providerId ? { ...p, isAvailable } : p))
+      prev.map(p => {
+        if (p.id === providerId) {
+          const updatedPro = { ...p, isAvailable };
+          firebaseDb.updateProvider(providerId, { isAvailable });
+          return updatedPro;
+        }
+        return p;
+      })
     );
-    api.updateProviderAvailability(providerId, isAvailable).catch(() => {});
   };
 
   // Request Withdrawal
@@ -464,23 +489,24 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       requestedAt: new Date().toLocaleDateString()
     };
     setWithdrawals(prev => [newReq, ...prev]);
+    firebaseDb.createWithdrawal(newReq);
 
     setProviders(prev =>
       prev.map(p => {
         if (p.id === providerId) {
-          return {
+          const updatedPro = {
             ...p,
             earnings: {
               ...p.earnings,
               pending: Math.max(0, p.earnings.pending - amount)
             }
           };
+          firebaseDb.updateProvider(providerId, updatedPro);
+          return updatedPro;
         }
         return p;
       })
     );
-
-    api.createWithdrawal({ providerId, providerName, amount, method, phone }).catch(() => {});
   };
 
   // Approve Withdrawal
@@ -488,21 +514,26 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setWithdrawals(prev =>
       prev.map(w => {
         if (w.id === withdrawalId) {
+          const updatedW = { ...w, status: 'approved' as const, processedAt: new Date().toLocaleDateString() };
+          firebaseDb.updateWithdrawal(withdrawalId, updatedW);
+
           setProviders(currentPros =>
             currentPros.map(p => {
               if (p.id === w.providerId) {
-                return {
+                const updatedPro = {
                   ...p,
                   earnings: {
                     ...p.earnings,
                     withdrawn: p.earnings.withdrawn + w.amount
                   }
                 };
+                firebaseDb.updateProvider(p.id, updatedPro);
+                return updatedPro;
               }
               return p;
             })
           );
-          return { ...w, status: 'approved', processedAt: new Date().toLocaleDateString() };
+          return updatedW;
         }
         return w;
       })
@@ -526,7 +557,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     setChatMessages(prev => [...prev, newMsg]);
-    api.sendChatMessage({ bookingId, senderId, senderName, senderRole, text }).catch(() => {});
+    firebaseDb.sendMessage(newMsg);
 
     if (senderRole === 'customer') {
       setTimeout(() => {
@@ -546,6 +577,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
         };
         setChatMessages(curr => [...curr, replyMsg]);
+        firebaseDb.sendMessage(replyMsg);
       }, 1500);
     }
   };
@@ -558,23 +590,24 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       createdAt: new Date().toLocaleDateString()
     };
     setReviews(prev => [newRev, ...prev]);
+    firebaseDb.createReview(newRev);
 
     setProviders(prev =>
       prev.map(p => {
         if (p.id === reviewData.providerId) {
           const totalReviews = p.reviewCount + 1;
           const newAvg = Number(((p.rating * p.reviewCount + reviewData.rating) / totalReviews).toFixed(2));
-          return {
+          const updatedPro = {
             ...p,
             rating: newAvg,
             reviewCount: totalReviews
           };
+          firebaseDb.updateProvider(p.id, updatedPro);
+          return updatedPro;
         }
         return p;
       })
     );
-
-    api.createReview(reviewData).catch(() => {});
   };
 
   // Complaint
@@ -586,14 +619,20 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       status: 'submitted'
     };
     setComplaints(prev => [newComplaint, ...prev]);
-    api.createComplaint(complaintData).catch(() => {});
+    firebaseDb.createComplaint(newComplaint);
   };
 
   const resolveComplaint = (complaintId: string, resolutionNote: string, refundAmount?: number) => {
     setComplaints(prev =>
-      prev.map(c => (c.id === complaintId ? { ...c, status: 'resolved', resolutionNote, refundAmount } : c))
+      prev.map(c => {
+        if (c.id === complaintId) {
+          const updatedC = { ...c, status: 'resolved' as const, resolutionNote, refundAmount };
+          firebaseDb.updateComplaint(complaintId, updatedC);
+          return updatedC;
+        }
+        return c;
+      })
     );
-    api.resolveComplaint(complaintId, resolutionNote, refundAmount).catch(() => {});
   };
 
   // Coupons
@@ -630,7 +669,6 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const addCoupon = (coupon: Coupon) => {
     setCoupons(prev => [coupon, ...prev]);
-    api.createCoupon(coupon).catch(() => {});
   };
 
   // Reset demo
@@ -666,6 +704,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         processedAt: '2026-08-11'
       }
     ]);
+    seedFirestoreDatabase();
   };
 
   return (
@@ -682,6 +721,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         chatMessages,
         withdrawals,
         isDatabaseConnected,
+        dbEngine,
         createBooking,
         updateBookingStatus,
         payBooking,

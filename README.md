@@ -1,74 +1,58 @@
-# Service Men (সার্ভিস ম্যান) 🛠️🇧🇩
-> **On-Demand Service Marketplace for Bangladesh**
+# 🇧🇩 Service Men (সার্ভিস মেন) — On-Demand Service Marketplace for Bangladesh
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-https%3A%2F%2Fservice--men--app.vercel.app-006A4E?style=for-the-badge&logo=vercel)](https://service-men-app.vercel.app)
-[![GitHub Repository](https://img.shields.io/badge/GitHub-Ayatulpathan%2Fservice--men--app-181717?style=for-the-badge&logo=github)](https://github.com/Ayatulpathan/service-men-app)
+[![Firebase Hosting](https://img.shields.io/badge/Hosted_on-Firebase_Hosting-FFA611?style=for-the-badge&logo=firebase&logoColor=white)](https://service-men-app.web.app)
+[![Database](https://img.shields.io/badge/Database-Firebase_Cloud_Firestore-02569B?style=for-the-badge&logo=firebase&logoColor=white)](https://console.firebase.google.com/project/service-men-app/firestore)
+[![React](https://img.shields.io/badge/React_18-TypeScript-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
----
-
-## 🚀 Live Demo URL
-
-🔗 **[https://service-men-app.vercel.app](https://service-men-app.vercel.app)**
+An on-demand home and emergency service marketplace tailored for Bangladesh. Built with **React 18**, **TypeScript**, **Tailwind CSS**, and backed by **Google Firebase Cloud Firestore** and **Express REST Backend Services**.
 
 ---
 
-## 📌 Short Description
+## 🌟 Key Features
 
-**Service Men** is an on-demand web marketplace designed specifically for Bangladesh that connects customers with verified service professionals (Electricians, Plumbers, AC Technicians, Home Tutors, Car Mechanics, and Beauty Specialists).
+### 🇧🇩 1. Bangladesh Geographic & Cultural Localization
+- **8 Administrative Divisions & 64 Districts**: Dhaka, Chittagong, Rajshahi, Khulna, Barisal, Sylhet, Rangpur, Mymensingh.
+- **Thana & Upazila Selector**: Mirpur, Dhanmondi, Gulshan, Uttara, Agrabad, Nasirabad, Kazir Dewri, Boalia, Motihar, Panchlaish, and more.
+- **Bangla ⇄ English Switcher**: Full bilingual support.
+- **Currency**: BDT (`৳`) with authentic localized pricing models.
 
-The platform features location-based service discovery (Division ➔ District ➔ Upazila/Thana ➔ Area), a custom job tender bidding engine, 24/7 rapid emergency dispatch, live 6-stage booking tracking, instant mobile payments (bKash, Nagad, Rocket, Cards), digital invoices with a 7-day service warranty, and full bilingual support (**English ⇄ বাংলা**).
+### 👥 2. Multi-Persona Experience
+- **Customer Mode**: Browse 40+ services across 7 categories, post custom job tenders, track 6-stage booking status, chat with technicians, download warranty certificates.
+- **Service Provider Mode**: Accept booking requests, submit quotation bids, manage earnings ledger, request bKash/Nagad payouts, and upload NID credentials for verification.
+- **Administrator Panel**: Live GMV metrics, provider NID approvals, commission tracking (10% platform fee), and dispute resolution center.
+- **Public Marketplace**: High-conversion landing page, search autocomplete, category discovery, trust metrics.
 
----
+### 🔥 3. Firebase Cloud Firestore Database & Real-Time Sync
+- **11 Firestore Collections**: `services`, `categories`, `locations`, `providers`, `bookings`, `job_posts`, `job_bids`, `chat_messages`, `reviews`, `complaints`, `coupons`, `withdrawals`.
+- **Real-Time onSnapshot**: Live synchronization of bookings, bids, messages, and status updates across devices.
 
-## ✨ Key Features
-
-- 🔄 **Multi-Persona Switcher**: Instant top banner toggle between **Customer**, **Service Provider**, **Administrator**, and **Public Marketplace** modes.
-- 🇧🇩 **Bangladesh-First Localization**:
-  - Full geographic administrative tree covering all 8 Divisions: *Dhaka, Chattogram, Sylhet, Rajshahi, Khulna, Barishal, Rangpur, Mymensingh*.
-  - Formatted Bangladesh Taka (`৳ BDT` / `৳১,৫০০`) currency.
-  - Complete English ⇄ বাংলা (Bangla) translation dictionary.
-- 🛠️ **7 Service Categories & 40+ Services**:
-  - **Home Services**: Electrician, Plumbing, Carpentry, Painting, Deep Cleaning, Pest Control, House Shifting.
-  - **Appliance Servicing**: AC Jet-Pump Wash, Gas Refill & PCB Repair, Refrigerator, Washing Machine, IPS/UPS, Geyser.
-  - **IT & Gadgets**: PC/Laptop Repair, CCTV Installation, Wi-Fi Networking.
-  - **Vehicle Services**: On-call Car/Bike Mechanic, Doorstep Wash, Battery Jumpstart, Towing.
-  - **Education & Tutors**: BUET/DU Tutors, Quran & Arabic Teachers.
-  - **Personal & Beauty**: Doorstep Salon, Bridal & Party Makeover.
-  - **Business Solutions**: Commercial Office Cleaning, Commercial AC AMC.
-- 📋 **"Post a Job" Bidding Engine**: Customers post custom job tenders with budget ranges; providers submit competitive price quotes.
-- 🚨 **24/7 Emergency Dispatch**: 1-click urgent assistance for burst pipes, short circuits, or breakdowns with <30 minute target arrival.
-- 💳 **Bangladeshi Mobile Financial Services**: Simulated checkout for **bKash** (pink PIN/OTP wallet modal), **Nagad**, **Rocket**, **SSLCommerz Cards**, and **Cash on Delivery**.
-- 💬 **In-App Messaging & Live Chat**: Real-time customer ↔ technician messaging with automated pro quick responses.
-- 🧾 **Digital Invoice & 7-Day Warranty**: Printable invoice with parts breakdown, platform fees, and official 7-Day Service Warranty Certificate.
-- ⭐️ **Multi-Criteria Ratings**: 5-star ratings assessing *Quality*, *Punctuality*, *Behavior*, and *Price Fairness*.
-- 🛡️ **Admin & Provider Portals**: NID verification approvals, complaint dispute resolution, promo coupon creation (`FIRST100`), and bKash/Nagad wallet payout requests.
+### ⚡ 4. Backend Services Suite
+- **MFS Payment Gateway Service**: Direct bKash & Nagad checkout simulator with transaction verification.
+- **24/7 Emergency Dispatch Engine**: Dispatches nearby available verified technicians in <15 minutes.
+- **Transactional SMS Alerts**: Automated SMS notification simulator.
+- **Admin Metrics API**: Gross Merchandise Value (GMV), net platform revenue, and dispute stats.
 
 ---
 
-## 🗄️ Tech Stack & Architecture
+## 🚀 Quick Setup & Deployment
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Lucide Icons, Canvas Confetti, Vite.
-- **Backend REST API**: Node.js, Express.js.
-- **Database & ORM**: Prisma ORM, SQLite (`prisma/dev.db`) with 1-line PostgreSQL compatibility.
-- **Deployment**: Vercel Cloud (Frontend CDN + Serverless API Functions).
-
----
-
-## 🏃 Local Development Setup
-
+### 1. Install Dependencies
 ```bash
-# 1. Clone repository
-git clone https://github.com/Ayatulpathan/service-men-app.git
-cd service-men-app
-
-# 2. Install dependencies
 npm install
+```
 
-# 3. Push Database Schema & Seed Data
-npx prisma db push
-npx tsx prisma/seed.ts
+### 2. Seed Cloud Firestore Database
+```bash
+npx tsx scripts/seedDirectToFirestore.ts
+```
 
-# 4. Start Backend Server & Frontend Dev Server
-npm run server   # Express API server on http://localhost:5000
-npm run dev      # Vite Frontend on http://localhost:3000
+### 3. Run Development Server
+```bash
+npm run dev
+```
+
+### 4. Deploy Live to Firebase Hosting
+```bash
+npx firebase-tools deploy --only hosting
 ```

@@ -10,7 +10,9 @@ import {
   User as UserIcon,
   Menu,
   X,
-  PlusCircle
+  PlusCircle,
+  KeyRound,
+  LogOut
 } from 'lucide-react';
 import { SERVICE_ITEMS } from '../../data/serviceCategories';
 
@@ -19,15 +21,17 @@ interface HeaderProps {
   activeTab: string;
   onOpenEmergencyModal: () => void;
   onOpenPostJobModal: () => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onNavigateTab,
   activeTab,
   onOpenEmergencyModal,
-  onOpenPostJobModal
+  onOpenPostJobModal,
+  onOpenAuthModal
 }) => {
-  const { persona, currentUser, setPersona } = useAuth();
+  const { persona, currentUser, setPersona, logout } = useAuth();
   const { language, t } = useLanguage();
   const { bookings } = useMarketplace();
   const isBn = language === 'bn';
@@ -166,28 +170,32 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* User Profile / Login Pill */}
             {currentUser ? (
-              <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={onOpenAuthModal}
+                className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all shrink-0 text-left group"
+                title="Click to Switch Credentials / Logout"
+              >
                 <img
                   src={currentUser.avatar}
                   alt={currentUser.name}
                   className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border-2 border-brand-500 shadow-xs shrink-0"
                 />
                 <div className="hidden xl:block text-left">
-                  <div className="text-xs font-bold text-slate-800 leading-tight">
+                  <div className="text-xs font-bold text-slate-800 leading-tight group-hover:text-brand-600 transition-colors">
                     {isBn ? (currentUser.nameBn || currentUser.name) : currentUser.name}
                   </div>
                   <div className="text-[10px] font-semibold text-slate-400 capitalize">
                     {currentUser.role} • {currentUser.thana}
                   </div>
                 </div>
-              </div>
+              </button>
             ) : (
               <button
-                onClick={() => setPersona('customer')}
-                className="flex items-center gap-1 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-[11px] sm:text-xs font-bold transition-all shadow-sm shrink-0"
+                onClick={onOpenAuthModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-[11px] sm:text-xs font-bold transition-all shadow-sm shrink-0"
               >
-                <UserIcon className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden xs:inline">{isBn ? 'লগইন' : 'Login'}</span>
+                <KeyRound className="w-3.5 h-3.5 shrink-0" />
+                <span>{isBn ? 'লগইন' : 'Login'}</span>
               </button>
             )}
 
@@ -204,6 +212,18 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-slate-100 space-y-3 px-1">
+            {/* Mobile Auth Button */}
+            <button
+              onClick={() => { onOpenAuthModal?.(); setMobileMenuOpen(false); }}
+              className="w-full p-2.5 bg-brand-50 border border-brand-200 rounded-2xl flex items-center justify-between text-brand-900 font-bold text-xs"
+            >
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-brand-600" />
+                <span>{currentUser ? `${currentUser.name} (${currentUser.role})` : (isBn ? 'লগইন / রেজিস্টার করুন' : 'Sign In with Credentials')}</span>
+              </div>
+              <span className="text-[10px] text-brand-600 font-bold uppercase">{currentUser ? 'Switch' : 'Sign In'}</span>
+            </button>
+
             {/* Mobile Search Bar */}
             <div className="relative w-full">
               <input

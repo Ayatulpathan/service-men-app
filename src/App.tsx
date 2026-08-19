@@ -42,6 +42,9 @@ import { ProviderVerification } from './components/admin/ProviderVerification';
 import { DisputeCenter } from './components/admin/DisputeCenter';
 import { CouponManager } from './components/admin/CouponManager';
 
+// Auth Modal
+import { AuthModal } from './components/auth/AuthModal';
+
 import { ServiceItem, Provider, Booking } from './types';
 import { SERVICE_ITEMS } from './data/serviceCategories';
 
@@ -57,6 +60,7 @@ const MainAppContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Modals state
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<ServiceItem | null>(null);
   const [selectedProviderForBooking, setSelectedProviderForBooking] = useState<Provider | null>(null);
@@ -77,7 +81,7 @@ const MainAppContent: React.FC = () => {
 
   // Quick Action Handlers
   const handleOpenEmergencyModal = () => {
-    setSelectedServiceForBooking(SERVICE_ITEMS[0]); // Default to electrician / emergency
+    setSelectedServiceForBooking(SERVICE_ITEMS[0]);
     setSelectedProviderForBooking(null);
     setIsEmergencyBooking(true);
     setBookingModalOpen(true);
@@ -113,15 +117,17 @@ const MainAppContent: React.FC = () => {
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategoryFilter(categoryId);
     setActiveTab('services');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSearchSubmit = (query: string) => {
     setSearchQuery(query);
     setActiveTab('services');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans selection:bg-brand-500 selection:text-white">
       {/* Sticky Persona and Language Switcher Banner */}
       <PersonaBanner />
 
@@ -131,57 +137,68 @@ const MainAppContent: React.FC = () => {
         onNavigateTab={setActiveTab}
         onOpenEmergencyModal={handleOpenEmergencyModal}
         onOpenPostJobModal={() => setPostJobModalOpen(true)}
+        onOpenAuthModal={() => setAuthModalOpen(true)}
       />
 
       {/* Persona Sub-Navigation Tabs */}
       {persona !== 'guest' && (
         <div className="no-print bg-white border-b border-slate-200 sticky top-27 z-30 shadow-2xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 py-2.5 overflow-x-auto text-xs font-bold">
+            <div className="flex items-center gap-2 py-2.5 overflow-x-auto text-xs font-bold scrollbar-none">
               {persona === 'customer' && (
                 <>
                   <button
                     onClick={() => setActiveTab('home')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'home' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'home'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navHome')}
+                    {isBn ? 'হোম' : 'Home'}
                   </button>
                   <button
                     onClick={() => setActiveTab('services')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'services' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'services'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navServices')}
+                    {isBn ? 'সকল সার্ভিস' : 'Browse Services'}
                   </button>
                   <button
                     onClick={() => setActiveTab('bookings')}
-                    className={`px-3.5 py-1.5 rounded-xl transition-all relative ${
-                      activeTab === 'bookings' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                    className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                      activeTab === 'bookings'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    <span>{t('navBookings')}</span>
-                    <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-800 text-[10px]">
+                    <span>{isBn ? 'আমার বুকিং' : 'My Bookings'}</span>
+                    <span className="px-1.5 py-0.2 bg-brand-100 text-brand-800 rounded-full text-[10px]">
                       {bookings.length}
                     </span>
                   </button>
                   <button
                     onClick={() => setActiveTab('bids')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'bids' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'bids'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navQuotes')}
+                    {isBn ? 'আগত বিডস' : 'Job Quotes & Bids'}
                   </button>
                   <button
                     onClick={() => setActiveTab('loyalty')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'loyalty' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'loyalty'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navLoyalty')}
+                    {isBn ? 'রিওয়ার্ড ও রেফারেল' : 'Loyalty & Rewards'}
                   </button>
                 </>
               )}
@@ -191,42 +208,52 @@ const MainAppContent: React.FC = () => {
                   <button
                     onClick={() => setActiveTab('dashboard')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'dashboard' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'dashboard' || activeTab === 'home'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navDashboard')}
+                    {isBn ? 'ড্যাশবোর্ড' : 'Overview Dashboard'}
                   </button>
                   <button
                     onClick={() => setActiveTab('requests')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'requests' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'requests'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navRequests')}
+                    {isBn ? 'বুকিং রিকুয়েস্ট' : 'Live Bookings'}
                   </button>
                   <button
                     onClick={() => setActiveTab('bidding')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'bidding' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'bidding'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navBidding')}
+                    {isBn ? 'কাস্টমার জব বিডিং' : 'Job Tenders & Quotes'}
                   </button>
                   <button
                     onClick={() => setActiveTab('earnings')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'earnings' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'earnings'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navEarnings')}
+                    {isBn ? 'আয় ও উত্তোলন (bKash)' : 'Earnings & Payouts'}
                   </button>
                   <button
                     onClick={() => setActiveTab('verification')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'verification' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'verification'
+                        ? 'bg-brand-600 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navVerification')}
+                    {isBn ? 'এনআইডি ভেরিফিকেশন' : 'NID Verification'}
                   </button>
                 </>
               )}
@@ -236,34 +263,42 @@ const MainAppContent: React.FC = () => {
                   <button
                     onClick={() => setActiveTab('dashboard')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'dashboard' ? 'bg-purple-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'dashboard' || activeTab === 'home'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navDashboard')}
+                    {isBn ? 'এডমিন ওভারভিউ' : 'Admin Metrics'}
                   </button>
                   <button
                     onClick={() => setActiveTab('verifications')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'verifications' ? 'bg-purple-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'verifications'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navProviders')}
+                    {isBn ? 'প্রোভাইডার এনআইডি অনুমোদন' : 'NID Approvals'}
                   </button>
                   <button
                     onClick={() => setActiveTab('disputes')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'disputes' ? 'bg-purple-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'disputes'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navDisputes')}
+                    {isBn ? 'অভিযোগ ও রিফান্ড' : 'Disputes & Refunds'}
                   </button>
                   <button
                     onClick={() => setActiveTab('coupons')}
                     className={`px-3.5 py-1.5 rounded-xl transition-all ${
-                      activeTab === 'coupons' ? 'bg-purple-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      activeTab === 'coupons'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {t('navCoupons')}
+                    {isBn ? 'কুপন ও প্রচার' : 'Coupons & Promos'}
                   </button>
                 </>
               )}
@@ -272,36 +307,54 @@ const MainAppContent: React.FC = () => {
         </div>
       )}
 
-      {/* Main Content Router */}
+      {/* Main Dynamic Workspace Body */}
       <main className="flex-1">
-        {/* PUBLIC MARKETPLACE / GUEST VIEW */}
+        {/* A. PUBLIC GUEST VIEW */}
         {persona === 'guest' && (
-          <div>
+          <div className="space-y-12 pb-16">
             <HeroSection
               onSearchSubmit={handleSearchSubmit}
               onSelectCategory={handleCategorySelect}
               onOpenEmergencyModal={handleOpenEmergencyModal}
               onOpenPostJobModal={() => setPostJobModalOpen(true)}
             />
-            <CategoryGrid
-              onSelectCategory={handleCategorySelect}
-              onSelectService={(srvId) => {
-                const found = SERVICE_ITEMS.find(s => s.id === srvId);
-                if (found) handleBookService(found);
-              }}
-            />
-            <EmergencyBanner onOpenEmergencyModal={handleOpenEmergencyModal} />
-            <FeaturedProviders
-              onSelectProvider={handleSelectProvider}
-              onBookProvider={(prov) => handleBookService(SERVICE_ITEMS[0], prov)}
-            />
-            <HowItWorks />
-            <WhyChooseUs />
-            <CustomerReviews />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <EmergencyBanner onOpenEmergencyModal={handleOpenEmergencyModal} />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <CategoryGrid
+                onSelectCategory={handleCategorySelect}
+                onSelectService={(srvId) => {
+                  const found = SERVICE_ITEMS.find(s => s.id === srvId);
+                  if (found) handleBookService(found);
+                }}
+              />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <FeaturedProviders
+                onSelectProvider={handleSelectProvider}
+                onBookProvider={(prov) => handleBookService(SERVICE_ITEMS[0], prov)}
+              />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <HowItWorks />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <WhyChooseUs />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <CustomerReviews />
+            </div>
           </div>
         )}
 
-        {/* CUSTOMER PORTAL */}
+        {/* B. CUSTOMER PERSONA VIEWS */}
         {persona === 'customer' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {activeTab === 'home' && (
@@ -357,7 +410,7 @@ const MainAppContent: React.FC = () => {
           </div>
         )}
 
-        {/* SERVICE PROVIDER PORTAL */}
+        {/* C. SERVICE PROVIDER PORTAL */}
         {persona === 'provider' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {(activeTab === 'home' || activeTab === 'dashboard') && (
@@ -372,7 +425,7 @@ const MainAppContent: React.FC = () => {
           </div>
         )}
 
-        {/* ADMINISTRATOR CONTROL PANEL */}
+        {/* D. ADMINISTRATOR CONTROL PANEL */}
         {persona === 'admin' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {(activeTab === 'home' || activeTab === 'dashboard') && (
@@ -385,7 +438,15 @@ const MainAppContent: React.FC = () => {
         )}
       </main>
 
-      {/* Global Modals */}
+      {/* ================= MODALS & POPUPS ================= */}
+
+      {/* 0. Credentials Authentication Modal */}
+      {authModalOpen && (
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+        />
+      )}
 
       {/* 1. Booking Checkout Modal */}
       {bookingModalOpen && (

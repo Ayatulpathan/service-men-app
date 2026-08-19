@@ -1,14 +1,15 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase Project Credentials configuration
+// Official Firebase Project Credentials for service-men-app
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDemoServiceMenKey2026",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBWRJHBPYlTDoOmwHlwvqpYuVI_SB_sVy4",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "service-men-app.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "service-men-app",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "service-men-app.appspot.com",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "service-men-app.firebasestorage.app",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "266830532258",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:266830532258:web:a1b2c3d4e5f6g7h8"
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:266830532258:web:51727f5fc60b9f26ced1fb",
+  measurementId: "G-H7QDN9Y3TZ"
 };
 
 // Initialize Firebase App instance
